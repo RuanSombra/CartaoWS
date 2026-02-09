@@ -29,12 +29,13 @@ const CardOverview: React.FC<Props> = ({ cards, expenses, currentMonth, selected
         const cardTotal = expenses
           .filter(e => e.cardId === card.id)
           .map(e => getInstallmentInfo(e, card, currentMonth))
-          .filter((info): info is { value: number } => info !== null)
+          // CORREÇÃO AQUI: Definimos explicitamente a estrutura completa do objeto no filtro
+          .filter((info): info is { current: number; total: number; value: number } => info !== null)
           .reduce((sum, info) => sum + info.value, 0);
 
         const isSelected = selectedCardId === card.id;
         const available = card.limit - cardTotal;
-        const percentUsed = (cardTotal / card.limit) * 100;
+        const percentUsed = card.limit > 0 ? (cardTotal / card.limit) * 100 : 0;
 
         // Lógica de Status da Fatura
         const isInvoiceClosed = todayDay > card.closingDay;
