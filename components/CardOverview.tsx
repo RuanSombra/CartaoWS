@@ -26,12 +26,15 @@ const CardOverview: React.FC<Props> = ({ cards, expenses, currentMonth, selected
   return (
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 hide-scrollbar snap-x snap-mandatory px-1">
       {cards.map(card => {
+        // Correção de Tipo: Realizamos o map e reduce diretamente checando nulidade, 
+        // evitando conflitos de predicados de tipo do TypeScript.
         const cardTotal = expenses
           .filter(e => e.cardId === card.id)
           .map(e => getInstallmentInfo(e, card, currentMonth))
-          // CORREÇÃO AQUI: Definimos explicitamente a estrutura completa do objeto no filtro
-          .filter((info): info is { current: number; total: number; value: number } => info !== null)
-          .reduce((sum, info) => sum + info.value, 0);
+          .reduce((sum, info) => {
+            if (!info) return sum;
+            return sum + info.value;
+          }, 0);
 
         const isSelected = selectedCardId === card.id;
         const available = card.limit - cardTotal;
