@@ -26,15 +26,22 @@ const CardOverview: React.FC<Props> = ({ cards, expenses, currentMonth, selected
   return (
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 hide-scrollbar snap-x snap-mandatory px-1">
       {cards.map(card => {
-        // Correção de Tipo: Realizamos o map e reduce diretamente checando nulidade, 
-        // evitando conflitos de predicados de tipo do TypeScript.
-        const cardTotal = expenses
-          .filter(e => e.cardId === card.id)
-          .map(e => getInstallmentInfo(e, card, currentMonth))
-          .reduce((sum, info) => {
-            if (!info) return sum;
-            return sum + info.value;
-          }, 0);
+        // CORREÇÃO DEFINITIVA: 
+        // Usamos um único reduce para filtrar e somar ao mesmo tempo.
+        // Isso remove a necessidade de tipos complexos ou predicados que confundem o TypeScript.
+        const cardTotal = expenses.reduce((acc, expense) => {
+          // 1. Verifica se é do cartão atual
+          if (expense.cardId !== card.id) return acc;
+          
+          // 2. Verifica se tem parcela neste mês
+          const info = getInstallmentInfo(expense, card, currentMonth);
+          
+          // 3. Se tiver info, soma o valor. Se info for null, mantém o acumulado.
+          if (info) {
+            return acc + info.value;
+          }
+          return acc;
+        }, 0);
 
         const isSelected = selectedCardId === card.id;
         const available = card.limit - cardTotal;
